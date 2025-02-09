@@ -9,12 +9,23 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Introduction to MongoDB",
   "dependencies": {
     "body-parser": "^1.20.3",
+    "cor": "^0.0.0",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "mongodb": "^6.13.0",
+    "mongoose": "^8.10.0",
     "nodemon": "^3.1.9"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Wimonsiri-Khongcharoen/First_Project.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Wimonsiri-Khongcharoen/First_Project/issues"
+  },
+  "homepage": "https://github.com/Wimonsiri-Khongcharoen/First_Project#readme"
 }

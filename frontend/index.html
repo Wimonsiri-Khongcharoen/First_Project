@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Information List</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+
+
+    <style>
+        .todo-container {
+            max-width: 600px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .todo-item {
+            margin-bottom: 8px;
+            background: #ffffff;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .todo-item span {
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container mt-3 todo-container">
+        <h3 class="mb-3 text-center">Student Information List</h3>
+
+        <!-- ช่องค้นหาชื่อ -->
+        <div class="input-group mb-3">
+            <input type="text" id="search" class="form-control" placeholder="Search by name..." />
+            <button class="btn btn-info" onclick="searchStudents()">Search</button>
+        </div>
+
+        <!-- ฟอร์มเพิ่มข้อมูล -->
+        <div class="input-group mb-3">
+            <input type="text" id="firstname" class="form-control" placeholder="First Name" />
+            <input type="text" id="lastname" class="form-control" placeholder="Last Name" />
+            <input type="number" id="age" class="form-control" placeholder="Age" />
+            <input type="text" id="major" class="form-control" placeholder="Major" />
+            <button class="btn btn-primary" onclick="addStudent()">+</button>
+        </div>
+
+        <!-- รายชื่อนักเรียน -->
+        <ul id="studentList" class="list-group"></ul>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:3000/students"; // URL ของ API
+
+        // ดึงข้อมูลนักเรียนทั้งหมด
+        async function fetchStudents() {
+            try {
+                const response = await axios.get(API_URL);
+                renderStudents(response.data);  // ใช้ข้อมูลจาก API
+            } catch (error) {
+                console.error("Error fetching students:", error);
+            }
+        }
+
+        // เพิ่มนักเรียนใหม่
+        async function addStudent() {
+            const firstname = document.getElementById("firstname").value;
+            const lastname = document.getElementById("lastname").value;
+            const age = document.getElementById("age").value;
+            const major = document.getElementById("major").value;
+
+            if (!firstname || !lastname || !age || !major) return;
+
+            try {
+                await axios.post(API_URL, { firstname, lastname, age, major });
+                fetchStudents(); // โหลดข้อมูลใหม่
+            } catch (error) {
+                console.error("Error adding student:", error);
+            }
+        }
+
+        // ลบนักเรียน
+        async function deleteStudent(id) {
+            try {
+                await axios.delete(`${API_URL}/${id}`);
+                fetchStudents(); // โหลดข้อมูลใหม่
+            } catch (error) {
+                console.error("Error deleting student:", error);
+            }
+        }
+
+        // แก้ไขข้อมูลนักเรียน
+        async function editStudent(id) {
+            const newfirstname = prompt("Edit first name:");
+            const newlastname = prompt("Edit last name:");
+            const newage = prompt("Edit age:");
+            const newmajor = prompt("Edit major:");
+
+            if (newfirstname && newlastname && newage && newmajor) {
+                try {
+                    await axios.put(`${API_URL}/${id}`, {
+                        firstname: newfirstname,
+                        lastname: newlastname,
+                        age: newage,
+                        major: newmajor
+                    });
+                    fetchStudents(); // โหลดข้อมูลใหม่
+                } catch (error) {
+                    console.error("Error editing student:", error);
+                }
+            }
+        }
+
+        // แสดงรายชื่อนักเรียน
+        function renderStudents(students) {
+            const studentList = document.getElementById("studentList");
+            studentList.innerHTML = "";  // ล้างรายการเก่า
+            students.forEach(student => {
+                const li = document.createElement("li");
+                li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+                // ข้อมูลนักเรียน
+                const studentInfo = document.createElement("span");
+                studentInfo.textContent = `${student.firstname} ${student.lastname} (Age: ${student.age}, Major: ${student.major})`;
+
+                // สร้าง div สำหรับปุ่ม
+                const buttonContainer = document.createElement("div");
+                buttonContainer.className = "d-flex gap-2";  // ใช้ Flexbox ให้ปุ่มชิดกัน
+
+                // ปุ่ม Edit
+                const editButton = document.createElement("button");
+                editButton.className = "btn btn-warning btn-sm mx-1";
+                editButton.innerHTML = "<i class='fas fa-edit'></i> Edit";
+                editButton.onclick = () => editStudent(student._id);  // แก้ไขการเรียกใช้ ID
+
+                // ปุ่ม Delete
+                const deleteButton = document.createElement("button");
+                deleteButton.className = "btn btn-danger btn-sm mx-1";
+                deleteButton.innerHTML = "<i class='fas fa-trash'></i> Delete";
+                deleteButton.onclick = () => deleteStudent(student._id);  // แก้ไขการเรียกใช้ ID
+
+                // ใส่ปุ่มลงใน container
+                buttonContainer.appendChild(editButton);
+                buttonContainer.appendChild(deleteButton);
+
+                // ใส่ข้อมูลและปุ่มลงใน li
+                li.appendChild(studentInfo);
+                li.appendChild(buttonContainer);
+
+                // เพิ่มรายการไปยัง list
+                studentList.appendChild(li);
+            });
+        }
+
+        // ค้นหานักเรียนตามชื่อ
+        async function searchStudents() {
+            const searchTerm = document.getElementById("search").value.trim().toLowerCase(); // แปลงเป็นตัวพิมพ์เล็ก
+            if (!searchTerm) return;  // ถ้าไม่มีคำค้นหา ไม่ต้องทำอะไร
+
+            try {
+                const response = await axios.get(API_URL);  // ดึงข้อมูลนักเรียนทั้งหมด
+                const students = response.data;
+
+                // กรองนักเรียนที่ตรงกับคำค้นหา
+                const filteredStudents = students.filter(student =>
+                    student.firstname.toLowerCase().includes(searchTerm) ||
+                    student.lastname.toLowerCase().includes(searchTerm)
+                );
+
+                // แสดงผลลัพธ์ที่กรองแล้ว
+                renderStudents(filteredStudents);
+            } catch (error) {
+                console.error("Error searching students:", error);
+            }
+        }
+
+
+        window.onload = fetchStudents; // โหลดข้อมูลเมื่อหน้าเว็บถูกโหลด
+    </script>
+
+</body>

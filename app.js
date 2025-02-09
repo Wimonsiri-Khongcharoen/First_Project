@@ -1,12 +1,14 @@
 const express = require("express");
+const cors = require("cors");
 const { MongoClient, ObjectId } = require("mongodb")
 const app = express();
 
+app.use(cors());
 app.use(express.json())
 let db;
 const client = new MongoClient("mongodb://localhost:27017");
 client.connect().then(() => {
-    db = client.db("ecommes");
+    db = client.db("shool");
     console.log("MongoDB connected");
 }).catch((err) => {
     console.log("MongoDB unconnect");
@@ -14,21 +16,23 @@ client.connect().then(() => {
 
 
 // ดึงข้อมูลทั้งหมด
-app.get('/product', async (req, res) => {
+app.get('/students', async (req, res) => {
     try {
-        const product = await db.collection("product").find().toArray();
+        const product = await db.collection("student").find().toArray();
         res.json(product);
     } catch (err) {
         res.json("error");
     }
 });
 
-app.get('/product/top/:top', async (req, res) => {
+app.get('/students/search/:search', async (req, res) => {
     try {
-        const top = req.params.top;
-        const product = await db.collection("product").find({
-            "top": { $in: [{ "name": top }] }
+        const search = req.params.search;
+        const product = await db.collection("student").find({
+            "name": search
         }).toArray();
+
+
         res.json(product);
     } catch (err) {
         res.json("error");
@@ -37,10 +41,10 @@ app.get('/product/top/:top', async (req, res) => {
 
 
 // ดึงข้อมูลรายการนั้น
-app.get('/product/:id', async (req, res) => {
+app.get('/students/:id', async (req, res) => {
     try {
         const id = req.params.id;
-        const product = await db.collection("product").findOne({
+        const product = await db.collection("student").findOne({
             "_id": new ObjectId(id)
         });
         res.json(product);
@@ -50,10 +54,10 @@ app.get('/product/:id', async (req, res) => {
 });
 
 // เพิ่มข้อมูลใหม่
-app.post('/product', async (req, res) => {
+app.post('/students', async (req, res) => {
     try {
         const data = req.body;
-        const product = await db.collection("product").insertOne(data);
+        const product = await db.collection("student").insertOne(data);
         res.json(product);
     } catch (err) {
         res.json("error");
@@ -61,11 +65,11 @@ app.post('/product', async (req, res) => {
 });
 
 // แก้ไขข้อมูล
-app.put('/product/:id', async (req, res) => {
+app.put('/students/:id', async (req, res) => {
     try {
         const id = req.params.id;
         const data = req.body;
-        const product = await db.collection("product").updateOne({
+        const product = await db.collection("student").updateOne({
             "_id": new ObjectId(id)
         }, {
             $set: data
@@ -76,7 +80,18 @@ app.put('/product/:id', async (req, res) => {
     }
 });
 
-
+// ลบข้อมูล
+app.delete('/students/:id', async (req, res) => {
+    try {
+        const id = req.params.id;
+        const product = await db.collection("student").deleteOne({
+            "_id": new ObjectId(id)
+        });
+        res.json(product);
+    } catch (err) {
+        res.json("error");
+    }
+});
 
 
 app.listen(3000, () => {
